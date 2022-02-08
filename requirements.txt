@@ -3,4 +3,5 @@ matplotlib
 ipywidgets
 voila
 sympy
+pandas
 
