@@ -4,4 +4,4 @@ ipywidgets
 voila
 sympy
 pandas
-
+scipy
