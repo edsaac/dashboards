@@ -1,4 +1,9 @@
 # dashboards
+
+- Virus transport and Potential flow
+  - PFM log-reductions calculator >> [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/edsaac/dashboards/HEAD?urlpath=voila%2Frender%2FPFM%20-%20Find%20worst%20case.ipynb)
+
+
 - Chemostats
   - Simple one                    >> [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/edsaac/dashboards/HEAD?urlpath=voila%2Frender%2FChemostat_deploy.ipynb)
 
