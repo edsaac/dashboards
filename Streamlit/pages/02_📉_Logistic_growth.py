@@ -11,8 +11,8 @@ def stream(Y,t,p):
     but only 2 here to get a phase diagram
     '''
     x,s = Y
-    dxdt =  x*s/(p[0]+s) - p[1]*x - p[2]*x
-    dsdt =  p[2]*(1-s) - p[3]*x*s/(p[0]+s)
+    dxdt =  x*(1-x)*s/(p[0]+s) - p[1]*x
+    dsdt =  p[2]*np.power(np.maximum(1-x,0),p[4])*(1-s) - p[3]*x*(1-x)*s/(p[0]+s)
     return [dxdt,dsdt]
 
 def plotStream():
@@ -48,8 +48,7 @@ def plotStream():
 
 ########################
 
-st.title("Chemostat")
-#st.header("Equations")
+st.title("Logistic chemostat + clogging")
 tabList = st.tabs(["🔣 Governing eqs.", 
                    "➗ Nondimensionalization",
                    "🔢 Nondimensional eqs.",
@@ -61,16 +60,18 @@ with tabList[0]:
             \left\{
             \begin{array}{rcl}
                 \dfrac{dX}{dt} &=& 
-                    \underbrace{Y\hat{q}\dfrac{S}{K_S + S}X}_{\textsf{Growth}}
+                    \underbrace{Y\hat{q}\dfrac{S}{K_S + S}\left(1-\dfrac{X}{X_{\rm max}}\right)X}
+                        _{\textsf{Logistic growth}}
                     - 
-                    \underbrace{bX}_{\textsf{Decay}}
-                    -
-                    \underbrace{\tfrac{Q}{V}X}_{\textsf{Outflow}}
+                    \underbrace{bX}
+                        _{\textsf{Decay}}
                     \\[3em]
                 \dfrac{dS}{dt} &=& 
-                    \underbrace{\tfrac{Q}{V}(S_\infty-S)}_{\textsf{In/outflow}}
+                    \underbrace{\tfrac{Q}{V}\left(1-\dfrac{X}{X_{\rm max}}\right)^n(S_\infty-S)}
+                        _{\textsf{Clogged In/outflow}}
                     -
-                    \underbrace{\hat{q}\dfrac{S}{K_S + S}X}_{\textsf{Consumption}}
+                    \underbrace{\hat{q}\dfrac{S}{K_S + S}\left(1-\dfrac{X}{X_{\rm max}}\right)X}
+                        _{\textsf{Consumption}}
             \end{array}
             \right.
         \end{equation*}''')
@@ -97,22 +98,18 @@ with tabList[1]:
 with tabList[2]: 
     st.latex(r'''
     \begin{equation*}
-        \left\{
         \begin{array}{rcl}
-            \dfrac{dx}{d\tau} &=& x\dfrac{s}{\pi_0 + s} - \pi_1 x - \pi_2 x \\[2em]
-            \dfrac{ds}{d\tau} &=& \pi_2 \left(1-s\right) - \pi_3 x\dfrac{s}{\pi_0 + s}\\
+            \dfrac{dx}{d\tau} &=& x(1-x)\dfrac{s}{\pi_0 + s} - \pi_1 x \\
+            \dfrac{ds}{d\tau} &=& \pi_2 \left(1-x\right)^n \left(1-s\right) - \pi_3 x(1-x)\dfrac{s}{\pi_0 + s}\\
         \end{array}
-        \right.
     \end{equation*}''')
 
 with tabList[3]:
     st.latex(r'''
     \begin{equation*}
-        \begin{array}{cc}
-            \textsf{Trivial:} & 
-                x=0 & s=1 \\[2em]
-            \textsf{Non-trivial:} &
-                x = \dfrac{\pi_{2} \left(\pi_{0} \pi_{1} + \pi_{0} \pi_{2} + \pi_{1} + \pi_{2} - 1\right)}{\pi_{3} \left(\pi_{1} + \pi_{2}\right) \left(\pi_{1} + \pi_{2} - 1 \right)} & s = \dfrac{\pi_{0} \left(\pi_{1} + \pi_{2}\right)}{1 - \pi_{1} - \pi_{2}}
+        \begin{array}{rcc}
+            \textsf{Trivial:} & x = 0 & s=1 \\[1em]
+            \textsf{Non-trivial:} & x = ?? & s=??
         \end{array}
     \end{equation*}''')
 
@@ -123,16 +120,17 @@ slin = np.linspace(0.001,1.1,61)
 x,s  = np.meshgrid(xlin,slin)
 
 ## This should be a dataclass
-parKeys   = ['Y','q','Ks','b','Q/V','S0']
-parLabels = [r'Y', r'\hat{q}', r'K_s', r'b', r'Q/V',    r'S^0']
-parValues = [0.42, 10.0 ,20.0 ,0.15, 1000.0/2000.0 ,50.0 ]
-parUnits  = ["mg(X)/mg(S)","mg(S)/mg(X)·d","mg(S)/L","1/d","1/d","mg(S)/L"]
+parKeys   = ['Y','q','Ks','b','Q/V','S0','n']
+parLabels = [r'Y', r'\hat{q}', r'K_s', r'b', r'Q/V',    r'S^0','n']
+parValues = [0.42, 10.0 ,20.0 ,0.15, 1000.0/2000.0 ,50.0 ,2.0]
+parUnits  = ["mg(X)/mg(S)","mg(S)/mg(X)·d","mg(S)/L","1/d","1/d","mg(S)/L","-"]
 parDescr  = ["Microbial yield ",
             "Max growth rate",
             "Half-saturation rate",
             "Die-off rate",
             "Dilution rate",
-            "Substrate concentration"]
+            "Substrate concentration",
+            "Clogging power"]
 
 ## Interactives
 with st.sidebar:
@@ -156,12 +154,13 @@ with st.sidebar:
            
 init = {'X':0.01,'S':0.01}
 pars = {k:v for k,v in zip(parKeys,parValues)}
-ndpr = [None] * 4
+ndpr = [None] * 5
 
 ndpr[0] = pars['Ks']/pars['S0']
 ndpr[1] = pars['b']/(pars['q'] * pars['Y'])
 ndpr[2] = pars['Q/V']/(pars['q'] * pars['Y'])
 ndpr[3] = 1.0
+ndpr[4] = pars['n']
 
 st.header("")
 columns = st.columns([1,1.5])
