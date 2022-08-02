@@ -173,5 +173,3 @@ with columns[0]:
 with columns[1]:
     st.markdown("#### Phase diagram")
     st.pyplot(plotStream())
-
-st.latex(r"\underbrace{L_2}_{HOLA}")
