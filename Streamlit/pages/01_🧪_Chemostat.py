@@ -46,6 +46,10 @@ def plotStream():
     
     return fig
 
+def resetValues():
+    global parValues
+    parValues = [0.42, 10.0 ,20.0 ,0.15, 1000.0/2000.0 ,50.0]
+
 ########################
 
 st.title("Chemostat")
@@ -136,6 +140,7 @@ parDescr  = ["Microbial yield ",
 
 ## Interactives
 with st.sidebar:
+    st.title('System control')
     st.header("🎚️ State variables")
     st.markdown(
          """
@@ -145,6 +150,7 @@ with st.sidebar:
 
     st.header("🎛️ Modify parameters")
     with st.expander("Parameters:",expanded=True):    
+        
         tabs = st.tabs(parKeys)
         for i,tab in enumerate(tabs):
             with tab:
@@ -153,7 +159,7 @@ with st.sidebar:
                         f"[{parUnits[i]}]", 
                         None , None, parValues[i], 0.05,
                         key=f"p_{i}", format="%.2f")
-           
+
 init = {'X':0.01,'S':0.01}
 pars = {k:v for k,v in zip(parKeys,parValues)}
 ndpr = [None] * 4
@@ -166,11 +172,13 @@ ndpr[3] = 1.0
 st.header("")
 columns = st.columns([1,1.5])
 with columns[0]:
+    st.info('👈 You can tweak the system parameters in the sidebar')
+
     with st.expander("Initial condition:",expanded=True):
-        init['X'] = st.slider("x0",0.0,1.0,0.01,0.05,"%.2f")
-        init['S'] = st.slider("s0",0.0,1.0,0.01,0.05,"%.2f")
+        init['X'] = st.slider("x₀",0.0,1.0,0.01,0.05,"%.2f")
+        init['S'] = st.slider("s₀",0.0,1.0,0.01,0.05,"%.2f")
     
-    with st.expander("Nondimensionals:",expanded=True):
+    with st.expander("Nondimensional values:",expanded=False):
         for i,p in enumerate(ndpr):
             st.latex(rf"p_{{{i}}} = {{{p:.3f}}}")    
 
