@@ -17,7 +17,7 @@ with st.echo():
 "## ❌ Using streamlit with kwarg `include_mathjax`"
 with st.echo():
     ## This is not really a kwarg to be passed to a plotly fig
-    st.plotly_chart(fig,include_mathjax="cdn")
+    st.plotly_chart(fig,kwargs={"include_mathjax":"cdn"})
 
 "## ✅ Rendering the exported HTML with kwarg `include_mathjax`:"
 with st.echo():
