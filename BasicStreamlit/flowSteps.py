@@ -52,6 +52,7 @@ ph = st.empty()
 if st.session_state.page == 0:
     with ph.container():
         st.header("This is page 1")
+        print("Run Page 1")
         st.button("Go to page 2",on_click=nextPage)
 
 ## Page 2
@@ -62,6 +63,7 @@ elif st.session_state.page == 1:
         st.write("More stuff in page 2")
         st.write("More more stuff in page 2")
         st.write("More more more stuff in page 2")
+        print("Run Page 2")
         st.button("Go to page 3",on_click=nextPage)
 
 ## Page 3
@@ -69,6 +71,7 @@ elif st.session_state.page == 2:
     with ph.container():
         st.header("This is page 3")
         st.image("https://placekitten.com/g/1400/600",caption=f"Meowhy")
+        print("Run Page 3")
         st.button("Go back",on_click=firstPage)
 
 # for k,v in st.session_state.items():
